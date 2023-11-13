@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Service Integration</title>
+
+    <!-- Подключаем стили -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+ 
+        #currency-rates {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+       #currency-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+       #currency-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+       #currency-list li:last-child {
+            border-bottom: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>Интеграции курсов валют с внешнего сервиса</h1>
+
+    <!-- Интеграция с API курсов валют -->
+    <div id="currency-rates">
+        <h2>Курсы валют</h2>
+        <ul id="currency-list"></ul>
+    </div>
+
+
+    <script>
+        // Пример интеграции с API курсов валют
+        fetch('https://api.exchangerate-api.com/v4/latest/USD')
+            .then(response => response.json())
+            .then(data => {
+                const currencyList = document.getElementById('currency-list');
+                for (const [currency, rate] of Object.entries(data.rates)) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${currency}: ${rate}`;
+                    currencyList.appendChild(listItem);
+                }
+            })
+            .catch(error => console.error('Ошибка при получении курсов валют:', error));
+
+    </script>
+
+</body>
+
+</html>
