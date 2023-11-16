@@ -51,7 +51,15 @@
 
         function calculate() {
             var display = document.getElementById('display');
-            display.value = eval(display.value);
+            display.value = evaluateExpression(display.value);
+        }
+
+        function evaluateExpression(expression) {
+            try {
+                return new Function('return ' + expression)();
+            } catch (error) {
+                return 'Ошибка';
+            }
         }
     </script>
 </body>
