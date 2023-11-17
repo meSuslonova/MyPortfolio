@@ -1,66 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор</title>
+    <title>Stylish Chat App</title>
     <style>
-        input[type="button"] {
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: scroll;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        .message {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        #message-input {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        #message-input input {
+            flex: 1;
+            padding: 8px;
+            margin-right: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #send-button,
+        #upload-button {
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #send-button {
+            background-color: #4caf50;
+            color: #fff;
+            margin-right: 10px;
+            /* Add margin to the right side */
+        }
+
+        #send-button:hover {
+            background-color: #45a049;
+        }
+
+        #upload-button {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        #upload-button:hover {
+            background-color: #2980b9;
         }
     </style>
 </head>
+
 <body>
-    <h1>Калькулятор</h1>
-    <table>
-        <tr>
-            <td colspan="4"><input type="text" id="display" disabled></td>
-        </tr>
-        <tr>
-            <td><input type="button" value="7" onclick="appendToDisplay('7')"></td>
-            <td><input type="button" value="8" onclick="appendToDisplay('8')"></td>
-            <td><input type="button" value="9" onclick="appendToDisplay('9')"></td>
-            <td><input type="button" value="/" onclick="appendToDisplay('/')"></td>
-        </tr>
-        <tr>
-            <td><input type="button" value="4" onclick="appendToDisplay('4')"></td>
-            <td><input type="button" value="5" onclick="appendToDisplay('5')"></td>
-            <td><input type="button" value="6" onclick="appendToDisplay('6')"></td>
-            <td><input type="button" value="*" onclick="appendToDisplay('*')"></td>
-        </tr>
-        <tr>
-            <td><input type="button" value="1" onclick="appendToDisplay('1')"></td>
-            <td><input type="button" value="2" onclick="appendToDisplay('2')"></td>
-            <td><input type="button" value="3" onclick="appendToDisplay('3')"></td>
-            <td><input type="button" value="-" onclick="appendToDisplay('-')"></td>
-        </tr>
-        <tr>
-            <td><input type="button" value="0" onclick="appendToDisplay('0')"></td>
-            <td><input type="button" value="." onclick="appendToDisplay('.')"></td>
-            <td><input type="button" value="=" onclick="calculate()"></td>
-            <td><input type="button" value="+" onclick="appendToDisplay('+')"></td>
-        </tr>
-    </table>
+    <input type="file" id="fileInput" style="display: none;" onchange="handleFileUpload(event)"
+        accept="image/*, .pdf, .doc, .docx">
+    <div id="weather-info"></div>
+    <div id="chat-box"></div>
+    <div id="message-input">
+        <input type="text" id="message" placeholder="Введите сообщение..." onkeydown="handleKeyPress(event)">
+        <button id="send-button" onclick="sendMessage()">Отправить</button>
+        <button id="upload-button" onclick="document.getElementById('fileInput').click()">Загрузить файл</button>
+    </div>
 
     <script>
-        function appendToDisplay(value) {
-            document.getElementById('display').value += value;
-        }
+        function sendMessage() {
+            var messageInput = document.getElementById('message');
+            var chatBox = document.getElementById('chat-box');
+            var messageText = messageInput.value.trim().toLowerCase();
 
-        function calculate() {
-            var display = document.getElementById('display');
-            display.value = evaluateExpression(display.value);
-        }
+            if (messageText !== '' || document.getElementById('fileInput').files.length > 0) {
+                if (document.getElementById('fileInput').files.length > 0) {
+                    // Обработка загруженного файла
+                    handleFileUpload({ target: { files: [document.getElementById('fileInput').files[0]] } });
+                    // Очистка messageInput после отправки файла
+                    messageInput.value = '';
+                } else {
+                    appendMessage('Вы: ' + messageText);
+                }
 
-        function evaluateExpression(expression) {
-            try {
-                return new Function('return ' + expression)();
-            } catch (error) {
-                return 'Ошибка';
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Check for 'погода' command and get weather info
+                if (messageText === 'погода') {
+                    getWeatherInfo('Москва');
+                } else {
+                    setTimeout(function () {
+                        var virtualResponse = generateVirtualResponse();
+                        appendMessageWithDelay('Виртуальный собеседник: ' + virtualResponse);
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    }, 1000);
+                }
             }
         }
+
+        function appendMessage(title, message) {
+            title = title || '';
+            message = message || '';
+            var chatBox = document.getElementById('chat-box');
+            var messageElement = document.createElement('div');
+            messageElement.innerHTML = `<b>${title}</b> ${message}`;
+            messageElement.classList.add('message');
+            chatBox.appendChild(messageElement);
+        }
+
+        function appendMessageWithDelay(message) {
+            var chatBox = document.getElementById('chat-box');
+            var messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageElement.classList.add('message');
+            chatBox.appendChild(messageElement);
+        }
+
+        function generateVirtualResponse() {
+            var responses = [
+                'Привет!',
+                'Как дела?',
+                'Чем могу помочь?',
+                'Это интересно!',
+                'Спасибо за сообщение!',
+                'Я здесь!',
+                'Приятно познакомиться!'
+            ];
+            var randomIndex = Math.floor(Math.random() * responses.length);
+            return responses[randomIndex];
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function getWeatherInfo(city) {
+            var apiKey = '1d15b3db7c366cc90cd216a3e7dafe24';  // Replace with your correct API key
+            var apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.weather && data.weather.length > 0) {
+                        var weatherInfo = `Погода в ${data.name}: ${data.weather[0].description}, Температура: ${data.main.temp}°K`;
+                        appendMessage('Чат-бот: ' + weatherInfo);
+                    } else {
+                        console.error('Ошибка получения информации о погоде: Неверный формат ответа API');
+                    }
+                })
+                .catch(error => console.error('Ошибка получения информации о погоде:', error));
+        }
+        // Function to display initial prompt
+        function displayInitialPrompt() {
+            var chatBox = document.getElementById('chat-box');
+            var initialMessage = "Привет! Я ваш виртуальный помощник. Если вы введете 'погода', я покажу вам прогноз погоды.";
+
+            setTimeout(function () {
+                appendMessage('Виртуальный помощник: ' + initialMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 500); // Adjust the delay as needed
+        }
+
+        // Call the function when the page is loaded
+        window.onload = displayInitialPrompt;
+
+        function mentionUser(username) {
+            var messageInput = document.getElementById('message');
+            messageInput.value += `@${username} `;
+        }
+
+        function handleFileUpload(event) {
+            var file = event.target.files[0];
+            if (file.type.startsWith('image/')) {
+                // If the uploaded file is an image
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var message = `<a href="${e.target.result}" data-lightbox="user-image"><img src="${e.target.result}" alt="User Image" style="width: auto; height: 200px;"/></a>`;
+                    appendMessage('User Image: ', message);
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // If the uploaded file is not an image
+                var blobUrl = URL.createObjectURL(file);
+                var filename = file.name;
+                var downloadLink = `<a href="${blobUrl}" download="${filename}" >${filename}</a>`;
+                appendMessage('User File: ', downloadLink);
+            }
+            // Clear out the file input after handling the uploaded file
+            document.getElementById('fileInput').value = '';
+        }
+        
     </script>
 </body>
+
 </html>
