@@ -74,7 +74,6 @@
             background-color: #4caf50;
             color: #fff;
             margin-right: 10px;
-            /* Add margin to the right side */
         }
 
         #send-button:hover {
@@ -173,15 +172,32 @@
             }
         }
 
+        function getWeatherDescriptionInRussian(description) {
+            const weatherDescriptions = {
+                'clear sky': 'ясно',
+                'few clouds': 'немного облачно',
+                'scattered clouds': 'рассеянные облака',
+                'broken clouds': 'облачно',
+                'shower rain': 'дождь',
+                'rain': 'дождь',
+                'thunderstorm': 'гроза',
+                'snow': 'снег',
+                'mist': 'туман',
+            };
+            return weatherDescriptions[description] || 'Неизвестно';
+        } 
+
         function getWeatherInfo(city) {
-            var apiKey = '1d15b3db7c366cc90cd216a3e7dafe24';  // Replace with your correct API key
+            var apiKey = '1d15b3db7c366cc90cd216a3e7dafe24';
             var apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
 
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.weather && data.weather.length > 0) {
-                        var weatherInfo = `Погода в ${data.name}: ${data.weather[0].description}, Температура: ${data.main.temp}°K`;
+                        var tempCelsius = data.main.temp - 273.15;
+                        var weatherDescriptionRussian = getWeatherDescriptionInRussian(data.weather[0].description);
+                        var weatherInfo = `Погода в ${data.name}: ${weatherDescriptionRussian}, Температура: ${tempCelsius.toFixed(2)}°C`;
                         appendMessage('Чат-бот: ' + weatherInfo);
                     } else {
                         console.error('Ошибка получения информации о погоде: Неверный формат ответа API');
@@ -228,7 +244,7 @@
             // Clear out the file input after handling the uploaded file
             document.getElementById('fileInput').value = '';
         }
-        
+
     </script>
 </body>
 
